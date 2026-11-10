@@ -9,8 +9,12 @@ public class Paciente {
     private final LocalDateTime registro;
 
     public Paciente(String id, String nombre, Tipo tipo, LocalDateTime registro) {
-        this.id = id;
-        this.nombre = nombre;
+        if (id == null || id.isBlank() || nombre == null || nombre.isBlank()
+                || tipo == null || registro == null) {
+            throw new IllegalArgumentException("ID, nombre, tipo y registro son obligatorios");
+        }
+        this.id = id.trim();
+        this.nombre = nombre.trim();
         this.tipo = tipo;
         this.registro = registro;
     }

@@ -41,7 +41,29 @@ public class Multilista {
         return externo == null ? null : externo.getListaInterna();
     }
 
-    private NodoExterno buscarExterno(String nombreEspecialidad) {
+    public Paciente eliminarNodoInterno(String nombreEspecialidad, String idPaciente) {
+        NodoExterno externo = buscarExterno(nombreEspecialidad);
+        if (externo == null) {
+            return null;
+        }
+        NodoInterno anterior = null;
+        NodoInterno actual = externo.getListaInterna();
+        while (actual != null) {
+            if (actual.getDato().getId().equals(idPaciente)) {
+                if (anterior == null) {
+                    externo.setListaInterna(actual.getSiguiente());
+                } else {
+                    anterior.setSiguiente(actual.getSiguiente());
+                }
+                return actual.getDato();
+            }
+            anterior = actual;
+            actual = actual.getSiguiente();
+        }
+        return null;
+    }
+
+    public NodoExterno buscarExterno(String nombreEspecialidad) {
         NodoExterno actual = cabeza;
         while (actual != null) {
             if (actual.getDato().getNombre().equals(nombreEspecialidad)) {
