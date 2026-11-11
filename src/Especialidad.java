@@ -9,7 +9,7 @@ public class Especialidad {
         if (nombre == null || nombre.isBlank()) {
             throw new IllegalArgumentException("El nombre de la especialidad es obligatorio");
         }
-        this.nombre = nombre.trim();
+        this.nombre = nombre.strip();
     }
 
     public String getNombre() { return nombre; }
@@ -19,6 +19,9 @@ public class Especialidad {
     public NodoInterno getHistorialAbandonos() { return historialAbandonos; }
 
     public void registrarAbandonoPorTiempo(Paciente paciente) {
+        if (paciente == null || paciente.getTipo() != Paciente.Tipo.REGULAR) {
+            throw new IllegalArgumentException("El abandono por tiempo requiere un paciente regular");
+        }
         NodoInterno nuevo = new NodoInterno(paciente);
         nuevo.setSiguiente(historialAbandonos);
         historialAbandonos = nuevo;

@@ -7,6 +7,9 @@ public class LinkedQueue<E> {
     }
 
     public void add(E item) {
+        if (item == null) {
+            throw new IllegalArgumentException("No se puede agregar un elemento nulo a la cola");
+        }
         Node<E> node = new Node<>(item);
         if (isEmpty()) {
             first = node;

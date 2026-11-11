@@ -3,6 +3,9 @@ public class NodoInterno {
     private NodoInterno siguiente;
 
     public NodoInterno(Paciente dato) {
+        if (dato == null) {
+            throw new IllegalArgumentException("El paciente del nodo es obligatorio");
+        }
         this.dato = dato;
     }
 

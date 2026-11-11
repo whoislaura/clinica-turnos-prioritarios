@@ -1,6 +1,8 @@
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 public class Clinica {
+    private static final Duration LIMITE_ESPERA = Duration.ofMinutes(30);
     private final Multilista especialidades = new Multilista();
     private final LinkedStack<Cancelacion> cancelaciones = new LinkedStack<>();
 
@@ -9,7 +11,7 @@ public class Clinica {
 
     public void agregarEspecialidad(String nombre) {
         validarTexto(nombre, "especialidad");
-        if (especialidades.buscarExterno(nombre.trim()) != null) {
+        if (especialidades.buscarExterno(nombre.strip()) != null) {
             throw new IllegalArgumentException("La especialidad ya existe");
         }
         especialidades.agregarNodoExterno(new Especialidad(nombre));
@@ -24,7 +26,8 @@ public class Clinica {
         while (actual != null) {
             NodoInterno interno = actual.getListaInterna();
             while (interno != null) {
-                if (interno.getDato().getId().equals(paciente.getId())) {
+                Paciente enEspera = interno.getDato();
+                if (enEspera.getId().equals(paciente.getId()) && !haExpirado(enEspera, paciente.getRegistro())) {
                     throw new IllegalArgumentException("El ID ya tiene un turno en espera");
                 }
                 interno = interno.getSiguiente();
@@ -37,21 +40,21 @@ public class Clinica {
     }
 
     public Paciente atenderSiguiente(String especialidad, LocalDateTime ahora) {
-        Especialidad area = obtenerEspecialidad(especialidad).getDato();
+        NodoExterno externo = obtenerEspecialidad(especialidad);
+        Especialidad area = externo.getDato();
         validarMomento(ahora);
-        Paciente primero = area.getEmergencias().isEmpty()
-                ? area.getRegulares().peek() : area.getEmergencias().peek();
+        LinkedQueue<Paciente> cola = area.getEmergencias();
+        Paciente primero = cola.peek();
+        if (primero == null) {
+            cola = area.getRegulares();
+            primero = primerRegularVigente(externo.getListaInterna(), ahora);
+        }
         if (primero != null && ahora.isBefore(primero.getRegistro())) {
             throw new IllegalArgumentException("La atención no puede ser anterior al registro");
         }
         expirarRegulares(ahora);
-        Paciente paciente = area.getEmergencias().isEmpty()
-                ? area.getRegulares().peek() : area.getEmergencias().peek();
+        Paciente paciente = cola.poll();
         if (paciente != null) {
-            if (ahora.isBefore(paciente.getRegistro())) {
-                throw new IllegalArgumentException("La atención no puede ser anterior al registro");
-            }
-            colaDe(area, paciente).poll();
             especialidades.eliminarNodoInterno(area.getNombre(), paciente.getId());
         }
         return paciente;
@@ -60,12 +63,13 @@ public class Clinica {
     public void cancelarTurno(String idPaciente, LocalDateTime ahora) {
         validarTexto(idPaciente, "ID del paciente");
         validarMomento(ahora);
+        String idBuscado = idPaciente.strip();
         NodoExterno externo = especialidades.getCabeza();
         while (externo != null) {
             NodoInterno interno = externo.getListaInterna();
             while (interno != null) {
                 Paciente paciente = interno.getDato();
-                if (paciente.getId().equals(idPaciente.trim())) {
+                if (paciente.getId().equals(idBuscado)) {
                     if (ahora.isBefore(paciente.getRegistro())) {
                         throw new IllegalArgumentException("La cancelación no puede ser anterior al registro");
                     }
@@ -75,9 +79,10 @@ public class Clinica {
                         throw new IllegalArgumentException("El turno ya abandonó por tiempo excedido");
                     }
                     Especialidad area = externo.getDato();
+                    Cancelacion cancelacion = new Cancelacion(paciente, area.getNombre(), ahora);
                     retirarDeCola(colaDe(area, paciente), paciente.getId());
                     especialidades.eliminarNodoInterno(area.getNombre(), paciente.getId());
-                    cancelaciones.push(new Cancelacion(paciente, area.getNombre(), ahora));
+                    cancelaciones.push(cancelacion);
                     return;
                 }
                 interno = interno.getSiguiente();
@@ -124,7 +129,7 @@ public class Clinica {
 
     private NodoExterno obtenerEspecialidad(String nombre) {
         validarTexto(nombre, "especialidad");
-        NodoExterno externo = especialidades.buscarExterno(nombre.trim());
+        NodoExterno externo = especialidades.buscarExterno(nombre.strip());
         if (externo == null) {
             throw new IllegalArgumentException("La especialidad no existe");
         }
@@ -138,7 +143,18 @@ public class Clinica {
 
     private boolean haExpirado(Paciente paciente, LocalDateTime ahora) {
         return paciente.getTipo() == Paciente.Tipo.REGULAR
-                && ahora.isAfter(paciente.getRegistro().plusMinutes(30));
+                && Duration.between(paciente.getRegistro(), ahora).compareTo(LIMITE_ESPERA) > 0;
+    }
+
+    private Paciente primerRegularVigente(NodoInterno actual, LocalDateTime ahora) {
+        while (actual != null) {
+            Paciente paciente = actual.getDato();
+            if (paciente.getTipo() == Paciente.Tipo.REGULAR && !haExpirado(paciente, ahora)) {
+                return paciente;
+            }
+            actual = actual.getSiguiente();
+        }
+        return null;
     }
 
     private void retirarDeCola(LinkedQueue<Paciente> cola, String idPaciente) {

@@ -4,6 +4,9 @@ public class NodoExterno {
     private NodoExterno siguiente;
 
     public NodoExterno(Especialidad dato) {
+        if (dato == null) {
+            throw new IllegalArgumentException("La especialidad del nodo es obligatoria");
+        }
         this.dato = dato;
     }
 

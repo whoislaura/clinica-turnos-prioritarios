@@ -6,6 +6,9 @@ public class LinkedStack<E> {
     }
 
     public void push(E item) {
+        if (item == null) {
+            throw new IllegalArgumentException("No se puede apilar un elemento nulo");
+        }
         top = new Node<>(item, top);
     }
 

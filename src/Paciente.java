@@ -13,8 +13,8 @@ public class Paciente {
                 || tipo == null || registro == null) {
             throw new IllegalArgumentException("ID, nombre, tipo y registro son obligatorios");
         }
-        this.id = id.trim();
-        this.nombre = nombre.trim();
+        this.id = id.strip();
+        this.nombre = nombre.strip();
         this.tipo = tipo;
         this.registro = registro;
     }
