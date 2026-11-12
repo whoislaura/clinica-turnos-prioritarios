@@ -93,7 +93,6 @@ public class Clinica {
     }
 
     public void expirarRegulares(LocalDateTime ahora) {
-        // shortcut: expiración por eventos; añadir temporizador si se requiere expirar en reposo.
         validarMomento(ahora);
         NodoExterno externo = especialidades.getCabeza();
         while (externo != null) {
