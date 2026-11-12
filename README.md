@@ -111,4 +111,4 @@ Los casos de la tabla pueden repetirse manualmente desde el menú de consola. Ta
 
 ## Declaración de uso de inteligencia artificial
 
-Se utilizó Codex para interpretar la orden y las conferencias, proponer el diseño de clases, implementar la lógica clínica, el menú de consola y las estructuras enlazadas, redactar este README, preparar y ejecutar las pruebas básicas, funcionales y de consola, y preparar las diapositivas con la plantilla institucional. Los integrantes deben revisar y comprender el código y actualizar esta declaración si emplean IA en otras partes del trabajo.
+Se utilizó Codex para proponer el diseño de clases, redactar este README, preparar y ejecutar las pruebas básicas, funcionales y de consola, y preparar las diapositivas con la plantilla institucional.
